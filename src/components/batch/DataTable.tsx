@@ -1,0 +1,190 @@
+import { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { PlacementRecord, SortConfig, SORTABLE_COLUMNS } from '@/types/placement';
+
+interface DataTableProps {
+  data: PlacementRecord[];
+  onRowClick: (record: PlacementRecord) => void;
+  onReadMore: (record: PlacementRecord) => void;
+}
+
+const DataTable = ({ data, onRowClick, onReadMore }: DataTableProps) => {
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
+
+  // Get column headers dynamically from data
+  const columns = useMemo(() => {
+    if (data.length === 0) return [];
+    return Object.keys(data[0]);
+  }, [data]);
+
+  // Filter data
+  const filteredData = useMemo(() => {
+    return data.filter((record) => {
+      return Object.entries(filters).every(([key, value]) => {
+        if (!value) return true;
+        const cellValue = String(record[key]).toLowerCase();
+        return cellValue.includes(value.toLowerCase());
+      });
+    });
+  }, [data, filters]);
+
+  // Sort data
+  const sortedData = useMemo(() => {
+    if (!sortConfig) return filteredData;
+
+    return [...filteredData].sort((a, b) => {
+      const aValue = a[sortConfig.key];
+      const bValue = b[sortConfig.key];
+
+      // Handle date sorting
+      if (sortConfig.key === 'Date') {
+        const dateA = new Date(aValue as string);
+        const dateB = new Date(bValue as string);
+        return sortConfig.direction === 'asc'
+          ? dateA.getTime() - dateB.getTime()
+          : dateB.getTime() - dateA.getTime();
+      }
+
+      // Handle numeric sorting
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+
+      // Handle string sorting
+      const strA = String(aValue).toLowerCase();
+      const strB = String(bValue).toLowerCase();
+      if (sortConfig.direction === 'asc') {
+        return strA.localeCompare(strB);
+      }
+      return strB.localeCompare(strA);
+    });
+  }, [filteredData, sortConfig]);
+
+  const handleSort = (key: string) => {
+    if (!SORTABLE_COLUMNS.includes(key)) return;
+
+    setSortConfig((prev) => {
+      if (prev?.key === key) {
+        return prev.direction === 'asc'
+          ? { key, direction: 'desc' }
+          : null;
+      }
+      return { key, direction: 'asc' };
+    });
+  };
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const renderSortIcon = (column: string) => {
+    if (!SORTABLE_COLUMNS.includes(column)) return null;
+
+    if (sortConfig?.key === column) {
+      return sortConfig.direction === 'asc' ? (
+        <ArrowUp className="h-3 w-3" />
+      ) : (
+        <ArrowDown className="h-3 w-3" />
+      );
+    }
+    return <ArrowUpDown className="h-3 w-3 opacity-50" />;
+  };
+
+  const truncateText = (text: string, maxLength: number = 120) => {
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength) + '...';
+  };
+
+  const formatCellValue = (value: string | number, column: string) => {
+    if (column === 'Hiring Process') {
+      return truncateText(String(value));
+    }
+    if (column === 'CTC (in LPA)' || column === 'Compensation in Internship') {
+      if (value === 'N/A') return value;
+      return typeof value === 'number' 
+        ? column === 'CTC (in LPA)' 
+          ? `₹${value} LPA` 
+          : `₹${value.toLocaleString()}`
+        : value;
+    }
+    return String(value);
+  };
+
+  return (
+    <div className="overflow-x-auto rounded-lg border">
+      <table className="data-table min-w-full">
+        <thead>
+          <tr>
+            {columns.map((column) => (
+              <th key={column} className="px-4 py-3">
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => handleSort(column)}
+                    className={`flex items-center gap-2 text-left font-medium ${
+                      SORTABLE_COLUMNS.includes(column) ? 'cursor-pointer hover:text-accent' : 'cursor-default'
+                    }`}
+                    disabled={!SORTABLE_COLUMNS.includes(column)}
+                  >
+                    <span className="whitespace-nowrap">{column}</span>
+                    {renderSortIcon(column)}
+                  </button>
+                  <input
+                    type="text"
+                    placeholder={`Filter ${column}`}
+                    value={filters[column] || ''}
+                    onChange={(e) => handleFilterChange(column, e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="data-table-filter rounded"
+                  />
+                </div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {sortedData.map((record, index) => (
+            <motion.tr
+              key={record['S.No.'] || index}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2, delay: index * 0.02 }}
+              onClick={() => onRowClick(record)}
+              className="cursor-pointer border-b transition-colors hover:bg-table-row-hover"
+            >
+              {columns.map((column) => (
+                <td key={column} className="px-4 py-3 text-sm">
+                  {column === 'Hiring Process' ? (
+                    <div className="max-w-xs">
+                      <p className="line-clamp-3">{formatCellValue(record[column], column)}</p>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onReadMore(record);
+                        }}
+                        className="read-more mt-1"
+                      >
+                        Read more →
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="whitespace-nowrap">{formatCellValue(record[column], column)}</span>
+                  )}
+                </td>
+              ))}
+            </motion.tr>
+          ))}
+        </tbody>
+      </table>
+      
+      {sortedData.length === 0 && (
+        <div className="flex h-32 items-center justify-center text-muted-foreground">
+          No records found matching your filters.
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default DataTable;
