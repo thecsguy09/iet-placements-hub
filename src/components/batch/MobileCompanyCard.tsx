@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Building2, Briefcase, IndianRupee, GraduationCap } from 'lucide-react';
+import { ChevronDown, Building2, Briefcase, IndianRupee, GraduationCap, Users } from 'lucide-react';
 import { PlacementRecord } from '@/types/placement';
 
 interface MobileCompanyCardProps {
@@ -21,7 +21,7 @@ const MobileCompanyCard = ({ record }: MobileCompanyCardProps) => {
   };
 
   // Primary fields shown in collapsed state
-  const primaryFields = ['Company', 'Job Role', 'CTC (in LPA)', 'CGPA'];
+  const primaryFields = ['Company', 'Job Role', 'CTC (in LPA)', 'CGPA', 'Total Offers'];
   
   // Get all other fields for expanded state
   const otherFields = Object.keys(record).filter(
@@ -61,7 +61,7 @@ const MobileCompanyCard = ({ record }: MobileCompanyCardProps) => {
         </div>
 
         {/* Quick stats */}
-        <div className="mt-4 flex items-center gap-4">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-sm font-medium text-success">
             <IndianRupee className="h-3.5 w-3.5" />
             <span>{record['CTC (in LPA)']} LPA</span>
@@ -70,6 +70,11 @@ const MobileCompanyCard = ({ record }: MobileCompanyCardProps) => {
           <div className="flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-sm font-medium text-accent">
             <GraduationCap className="h-3.5 w-3.5" />
             <span>CGPA: {record['CGPA']}</span>
+          </div>
+
+          <div className="flex items-center gap-1.5 rounded-full bg-warning/10 px-3 py-1 text-sm font-medium text-warning">
+            <Users className="h-3.5 w-3.5" />
+            <span>{record['Total Offers']} Offers</span>
           </div>
         </div>
       </button>
