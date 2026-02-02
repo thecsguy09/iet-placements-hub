@@ -59,16 +59,16 @@ const CompanyModal = ({ record, isOpen, onClose, highlightHiringProcess = false 
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-foreground/20 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
           />
 
           {/* Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-4 z-50 mx-auto my-auto max-h-[85vh] max-w-2xl overflow-hidden rounded-xl bg-card shadow-2xl md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2"
+            className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl bg-card shadow-2xl"
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b bg-primary px-6 py-4">
@@ -87,7 +87,7 @@ const CompanyModal = ({ record, isOpen, onClose, highlightHiringProcess = false 
             </div>
 
             {/* Content */}
-            <div className="custom-scrollbar max-h-[calc(85vh-80px)] overflow-y-auto p-6">
+            <div className="custom-scrollbar max-h-[60vh] overflow-y-auto p-6">
               <div className="grid gap-4">
                 {Object.entries(record).map(([key, value]) => (
                   <div
